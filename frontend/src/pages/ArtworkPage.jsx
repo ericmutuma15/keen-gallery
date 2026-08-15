@@ -51,7 +51,12 @@ export default function ArtworkPage() {
 
       <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#10181b]/80 shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
-          <img src={artwork.imageUrl} alt={artwork.title} className="w-full object-cover" />
+          <picture>
+            {artwork.imageUrl && artwork.imageUrl.endsWith('.svg') ? null : (
+              <source srcSet={artwork.imageUrl ? artwork.imageUrl.replace(/(\.(?:jpe?g|png))(\?.*)?$/i, '.webp$2') : ''} type="image/webp" />
+            )}
+            <img src={artwork.imageUrl} alt={artwork.title} className="w-full object-cover" />
+          </picture>
         </div>
 
         <div className="space-y-6">

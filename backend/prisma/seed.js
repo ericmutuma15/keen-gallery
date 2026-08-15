@@ -1,5 +1,21 @@
 import prisma from '../src/config/prisma.js';
 import { slugify } from '../src/utils/slugify.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const assetsDir = path.resolve(__dirname, '../../frontend/src/assets');
+
+function pickAsset(baseName) {
+  const exts = ['.webp', '.jpeg', '.jpg', '.png', '.svg'];
+  for (const ext of exts) {
+    const p = path.join(assetsDir, baseName + ext);
+    if (fs.existsSync(p)) return `/assets/${baseName + ext}`;
+  }
+  return null;
+}
 
 const seed = async () => {
   await prisma.contactMessage.deleteMany({});
@@ -52,8 +68,8 @@ const seed = async () => {
   ]);
 
   const artworks = [
-    { title: 'Machakos Light', slug: 'machakos-light', categoryId: categories[0].id, subcategoryId: paintingSubs[1].id, imageUrl: '/assets/machakos-light.jpeg', year: 2026, medium: 'Digital portrait', dimensions: '90 x 120 cm', price: 2200, availability: 'Available', featured: true },
-    { title: 'After Rain', slug: 'after-rain', categoryId: categories[0].id, subcategoryId: paintingSubs[0].id, imageUrl: '/assets/after-rain.jpeg', year: 2026, medium: 'Mixed media', dimensions: '100 x 80 cm', price: 2600, availability: 'Available', featured: true },
+    { title: 'Machakos Light', slug: 'machakos-light', categoryId: categories[0].id, subcategoryId: paintingSubs[1].id, imageUrl: pickAsset('machakos-light') || '/assets/machakos-light.jpeg', year: 2026, medium: 'Digital portrait', dimensions: '90 x 120 cm', price: 2200, availability: 'Available', featured: true },
+    { title: 'After Rain', slug: 'after-rain', categoryId: categories[0].id, subcategoryId: paintingSubs[0].id, imageUrl: pickAsset('after-rain') || '/assets/after-rain.jpeg', year: 2026, medium: 'Mixed media', dimensions: '100 x 80 cm', price: 2600, availability: 'Available', featured: true },
     { title: 'Night Market', categoryId: categories[1].id, subcategoryId: photoSubs[2].id, imageUrl: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?auto=format&fit=crop&w=1200&q=80', year: 2026, medium: 'Street editorial', dimensions: '80 x 60 cm', price: 1500, availability: 'Available', featured: true },
     { title: 'Commuter Echo', categoryId: categories[1].id, subcategoryId: photoSubs[1].id, imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=1200&q=80', year: 2026, medium: 'Photo collage', dimensions: '70 x 100 cm', price: 1300, availability: 'Available', featured: false },
     { title: 'Studio Silence', categoryId: categories[2].id, subcategoryId: digitalSubs[2].id, imageUrl: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80', year: 2026, medium: 'Digital composition', dimensions: '120 x 100 cm', price: 2700, availability: 'Available', featured: false },
@@ -73,11 +89,11 @@ const seed = async () => {
     { title: 'Moonlit Notes', categoryId: categories[4].id, subcategoryId: illustrationSubs[1].id, imageUrl: 'https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=1200&q=80', year: 2024, medium: 'Digital illustration', dimensions: '100 x 70 cm', price: 1300, availability: 'Available', featured: false },
     { title: 'Hollow Echo', categoryId: categories[0].id, subcategoryId: paintingSubs[0].id, imageUrl: 'https://images.unsplash.com/photo-1520637836862-4d197d17c90a?auto=format&fit=crop&w=1200&q=80', year: 2020, medium: 'Acrylic on panel', dimensions: '70 x 90 cm', price: 1700, availability: 'Sold', featured: false },
     // Local frontend asset images - theme-friendly names and unique slugs
-    { title: 'Portrait Abstract', slug: 'portrait-abstract', categoryId: categories[2].id, subcategoryId: digitalSubs[0].id, imageUrl: '/assets/portrait-abstract.jpeg', year: 2026, medium: 'Digital', dimensions: '800 x 600 px', price: 0, availability: 'Available', featured: false },
-    { title: 'Market Street', slug: 'market-street', categoryId: categories[2].id, subcategoryId: digitalSubs[0].id, imageUrl: '/assets/market-street.jpeg', year: 2026, medium: 'Digital', dimensions: '1200 x 800 px', price: 0, availability: 'Available', featured: false },
-    { title: 'Studio Dawn', slug: 'studio-dawn', categoryId: categories[2].id, subcategoryId: digitalSubs[0].id, imageUrl: '/assets/studio-dawn.jpeg', year: 2026, medium: 'Digital', dimensions: '800 x 600 px', price: 0, availability: 'Available', featured: false },
-    { title: 'Studio Dusk', slug: 'studio-dusk', categoryId: categories[2].id, subcategoryId: digitalSubs[0].id, imageUrl: '/assets/studio-dusk.jpeg', year: 2026, medium: 'Digital', dimensions: '800 x 600 px', price: 0, availability: 'Available', featured: false },
-    { title: 'Edgar Keen Portrait', slug: 'edgar-keen-portrait', categoryId: categories[2].id, subcategoryId: digitalSubs[0].id, imageUrl: '/assets/edgar-keen-portrait.svg', year: 2026, medium: 'Vector', dimensions: '600 x 600 px', price: 0, availability: 'Available', featured: false },
+    { title: 'Portrait Abstract', slug: 'portrait-abstract', categoryId: categories[2].id, subcategoryId: digitalSubs[0].id, imageUrl: pickAsset('portrait-abstract') || '/assets/portrait-abstract.jpeg', year: 2026, medium: 'Digital', dimensions: '800 x 600 px', price: 0, availability: 'Available', featured: false },
+    { title: 'Market Street', slug: 'market-street', categoryId: categories[2].id, subcategoryId: digitalSubs[0].id, imageUrl: pickAsset('market-street') || '/assets/market-street.jpeg', year: 2026, medium: 'Digital', dimensions: '1200 x 800 px', price: 0, availability: 'Available', featured: false },
+    { title: 'Studio Dawn', slug: 'studio-dawn', categoryId: categories[2].id, subcategoryId: digitalSubs[0].id, imageUrl: pickAsset('studio-dawn') || '/assets/studio-dawn.jpeg', year: 2026, medium: 'Digital', dimensions: '800 x 600 px', price: 0, availability: 'Available', featured: false },
+    { title: 'Studio Dusk', slug: 'studio-dusk', categoryId: categories[2].id, subcategoryId: digitalSubs[0].id, imageUrl: pickAsset('studio-dusk') || '/assets/studio-dusk.jpeg', year: 2026, medium: 'Digital', dimensions: '800 x 600 px', price: 0, availability: 'Available', featured: false },
+    { title: 'Edgar Keen Portrait', slug: 'edgar-keen-portrait', categoryId: categories[2].id, subcategoryId: digitalSubs[0].id, imageUrl: pickAsset('edgar-keen-portrait') || '/assets/edgar-keen-portrait.svg', year: 2026, medium: 'Vector', dimensions: '600 x 600 px', price: 0, availability: 'Available', featured: false },
   ];
 
   for (const artwork of artworks) {

@@ -4,14 +4,29 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { apiRequest } from '../services/api';
 import portrait from '../assets/edgar-keen-portrait.svg';
-import { localFeatured } from '../data/localArtworks';
+import { localFeatured, localArtworks } from '../data/localArtworks';
 
 const fallbackFeatured = localFeatured;
+
+function resolveImageFor(artwork) {
+  if (!artwork) return null;
+  const byTitle = localArtworks.find((l) => l.title && artwork.title && l.title.toLowerCase() === artwork.title.toLowerCase());
+  return byTitle ? byTitle.imageUrl : artwork.imageUrl;
+}
+
+function getWebpUrl(url) {
+  if (!url) return null;
+  if (url.endsWith('.svg')) return null;
+  return url.replace(/(\.(?:jpe?g|png))(\?.*)?$/i, '.webp$2');
+}
 
 function ArtworkCard({ artwork }) {
   return (
     <Link to={`/artwork/${artwork.slug}`} className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#121b20]/80 shadow-[0_30px_80px_rgba(0,0,0,0.42)]">
-      <img src={artwork.imageUrl} alt={artwork.title} className="h-80 w-full object-cover transition duration-700 group-hover:scale-105" />
+      <picture>
+        {getWebpUrl(artwork.imageUrl) && <source srcSet={getWebpUrl(artwork.imageUrl)} type="image/webp" />}
+        <img src={artwork.imageUrl} alt={artwork.title} className="h-80 w-full object-cover transition duration-700 group-hover:scale-105" />
+      </picture>
       <div className="absolute inset-0 bg-gradient-to-t from-[#070b10]/90 via-[#070b10]/20 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 p-5 text-[#f3efe6]">
         <p className="text-[10px] uppercase tracking-[0.2em] text-[#f3efe6]/75">{artwork.category?.name}</p>
@@ -27,7 +42,7 @@ export default function HomePage() {
   useEffect(() => {
     apiRequest('/artworks/featured')
       .then((res) => {
-        const fetched = res.data || [];
+        const fetched = (res.data || []).map((a) => ({ ...a, imageUrl: resolveImageFor(a) }));
         const merged = [...fetched, ...localFeatured.filter(f => !fetched.some(a => a.slug === f.slug))];
         setFeatured(merged);
       })

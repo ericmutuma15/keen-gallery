@@ -4,6 +4,18 @@ import { Search } from 'lucide-react';
 import { apiRequest } from '../services/api';
 import { localArtworks } from '../data/localArtworks';
 
+function resolveImageFor(artwork) {
+  if (!artwork) return null;
+  const byTitle = localArtworks.find((l) => l.title && artwork.title && l.title.toLowerCase() === artwork.title.toLowerCase());
+  return byTitle ? byTitle.imageUrl : artwork.imageUrl;
+}
+
+function getWebpUrl(url) {
+  if (!url) return null;
+  if (url.endsWith('.svg')) return null;
+  return url.replace(/(\.(?:jpe?g|png))(\?.*)?$/i, '.webp$2');
+}
+
 const defaultCategories = [
   { id: 'portrait', name: 'Portrait', slug: 'portrait', subcategories: [] },
   { id: 'abstract', name: 'Abstract', slug: 'abstract', subcategories: [] },
@@ -27,10 +39,15 @@ export default function GalleryPage() {
           apiRequest('/categories'),
         ]);
         if (artRes.data?.length) {
-          // Merge fetched artworks with local fallbacks so both sets render
-          const fetched = artRes.data;
-          const merged = [...fetched, ...localArtworks.filter(f => !fetched.some(a => a.slug === f.slug))];
+          // Show first six fetched artworks, then append up to six unique local artworks
+          const fetchedAll = artRes.data.map((a) => ({ ...a, imageUrl: resolveImageFor(a) }));
+          const firstSix = fetchedAll.slice(0, 6);
+          const toAppend = localArtworks.filter((f) => !firstSix.some((a) => a.slug === f.slug)).slice(0, 6);
+          const merged = [...firstSix, ...toAppend];
           setArtworks(merged);
+        } else {
+          // no API results: show up to 12 local artworks
+          setArtworks(localArtworks.slice(0, 12));
         }
         if (catRes.data?.length) setCategories(catRes.data);
       } catch (error) {
@@ -98,9 +115,12 @@ export default function GalleryPage() {
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {filtered.map((artwork) => (
           <Link key={artwork.id} to={`/artwork/${artwork.slug}`} className="group overflow-hidden rounded-[2rem] border border-white/10 bg-[#11181b]/80 shadow-[0_25px_80px_rgba(0,0,0,0.25)]">
-            <div className="overflow-hidden">
-              <img src={artwork.imageUrl} alt={artwork.title} className="h-80 w-full object-cover transition duration-700 group-hover:scale-105" />
-            </div>
+              <div className="overflow-hidden">
+                <picture>
+                  {getWebpUrl(artwork.imageUrl) && <source srcSet={getWebpUrl(artwork.imageUrl)} type="image/webp" />}
+                  <img src={artwork.imageUrl} alt={artwork.title} className="h-80 w-full object-cover transition duration-700 group-hover:scale-105" />
+                </picture>
+              </div>
             <div className="space-y-3 p-5">
               <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-[#d0b38d]">
                 <span>{artwork.category?.name}</span>
