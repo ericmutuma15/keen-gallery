@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { apiRequest } from '../services/api';
 import { findLocalBySlug } from '../data/localArtworks';
+import { localArtworks } from '../data/localArtworks';
 
 export default function ArtworkPage() {
   const { slug } = useParams();
@@ -12,13 +13,21 @@ export default function ArtworkPage() {
 
   useEffect(() => {
     setError(null);
+    // If slug corresponds to a local-only asset, use it directly and skip API call
+    const local = findLocalBySlug(slug);
+    if (local) {
+      setArtwork(local);
+      setError(null);
+      return;
+    }
+
     apiRequest(`/artworks/${slug}`)
       .then((res) => setArtwork(res.data))
       .catch(() => {
-        // if API misses, check local assets
-        const local = findLocalBySlug(slug);
-        if (local) {
-          setArtwork(local);
+        // if API misses, check local assets as a fallback
+        const fallback = findLocalBySlug(slug);
+        if (fallback) {
+          setArtwork(fallback);
           setError(null);
         } else {
           setArtwork(null);
@@ -26,6 +35,18 @@ export default function ArtworkPage() {
         }
       });
   }, [slug]);
+
+  useEffect(() => {
+    // whenever artwork is set from API, ensure imageUrl uses a local asset
+    if (artwork && artwork.imageUrl) {
+      const normalizeSlug = (s) => (s || '').replace(/-local$/i, '').toLowerCase();
+      const artSlug = normalizeSlug(artwork.slug);
+      let local = null;
+      if (artSlug) local = localArtworks.find((l) => normalizeSlug(l.slug) === artSlug || l.slug === artSlug);
+      if (!local && artwork.title) local = localArtworks.find((l) => l.title && l.title.toLowerCase() === artwork.title.toLowerCase());
+      if (local) setArtwork((a) => ({ ...a, imageUrl: local.imageUrl }));
+    }
+  }, [artwork]);
 
   if (!artwork && !error) {
     return <div className="mx-auto max-w-7xl px-4 py-20 text-center text-[#e7e2d9]">Loading artwork...</div>;

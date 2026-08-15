@@ -8,10 +8,23 @@ import { localFeatured, localArtworks } from '../data/localArtworks';
 
 const fallbackFeatured = localFeatured;
 
+function normalizeSlug(slug) {
+  if (!slug) return '';
+  return slug.replace(/-local$/i, '').toLowerCase();
+}
+
 function resolveImageFor(artwork) {
-  if (!artwork) return null;
-  const byTitle = localArtworks.find((l) => l.title && artwork.title && l.title.toLowerCase() === artwork.title.toLowerCase());
-  return byTitle ? byTitle.imageUrl : artwork.imageUrl;
+  if (!artwork) return localArtworks[0]?.imageUrl || '';
+  const artSlug = normalizeSlug(artwork.slug);
+  if (artSlug) {
+    const bySlug = localArtworks.find((l) => normalizeSlug(l.slug) === artSlug || l.slug === artSlug);
+    if (bySlug) return bySlug.imageUrl;
+  }
+  if (artwork.title) {
+    const byTitle = localArtworks.find((l) => l.title && l.title.toLowerCase() === artwork.title.toLowerCase());
+    if (byTitle) return byTitle.imageUrl;
+  }
+  return localArtworks[0]?.imageUrl || artwork.imageUrl || '';
 }
 
 function getWebpUrl(url) {
