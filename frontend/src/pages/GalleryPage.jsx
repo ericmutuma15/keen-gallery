@@ -13,7 +13,7 @@ const defaultCategories = [
 ];
 
 export default function GalleryPage() {
-  const [artworks, setArtworks] = useState(fallbackArtworks);
+  const [artworks, setArtworks] = useState(localArtworks);
   const [categories, setCategories] = useState(defaultCategories);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSubcategory, setSelectedSubcategory] = useState('');
