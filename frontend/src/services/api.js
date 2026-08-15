@@ -8,8 +8,6 @@ export const apiRequest = async (endpoint, options = {}) => {
     cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache',
-      Pragma: 'no-cache',
       ...(options.headers || {}),
     },
     ...options,
