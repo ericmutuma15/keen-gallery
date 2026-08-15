@@ -17,6 +17,17 @@ function pickAsset(baseName) {
   return null;
 }
 
+function ensureWebpUrl(url) {
+  // If url is a local asset path (/assets/...), prefer the .webp variant if it exists
+  if (!url || typeof url !== 'string') return url;
+  if (!url.startsWith('/assets/')) return url;
+  const base = path.basename(url);
+  const name = base.replace(/\.[^.]+$/, '');
+  const webpPath = path.join(assetsDir, `${name}.webp`);
+  if (fs.existsSync(webpPath)) return `/assets/${name}.webp`;
+  return url;
+}
+
 const seed = async () => {
   await prisma.contactMessage.deleteMany({});
   await prisma.artwork.deleteMany({});
@@ -97,12 +108,13 @@ const seed = async () => {
   ];
 
   for (const artwork of artworks) {
+    const imageUrl = ensureWebpUrl(artwork.imageUrl);
     await prisma.artwork.create({
       data: {
         title: artwork.title,
         slug: artwork.slug ? artwork.slug : slugify(artwork.title),
         description: 'A contemplative collection piece exploring atmosphere, memory, and human rhythm.',
-        imageUrl: artwork.imageUrl,
+        imageUrl: imageUrl,
         year: artwork.year,
         medium: artwork.medium,
         dimensions: artwork.dimensions,
