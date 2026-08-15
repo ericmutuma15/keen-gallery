@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id            String          @id @default(cuid())
+  email         String          @unique
+  passwordHash  String?
+  isInitialized Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  lastLoginAt   DateTime?
+  setupTokens   AdminSetupToken[]
+}
+
+model AdminAllowlist {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model AdminSetupToken {
+  id        String    @id @default(cuid())
+  adminId   String
+  admin     Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([adminId])
+}
+
+model Category {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  slug        String       @unique
+  description String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  subcategories Subcategory[]
+  artworks    Artwork[]
+}
+
+model Subcategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String
+  description String?
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  artworks    Artwork[]
+
+  @@unique([categoryId, slug])
+}
+
+model Artwork {
+  id             String      @id @default(cuid())
+  title          String
+  slug           String      @unique
+  description    String
+  imageUrl       String
+  imagePublicId  String?
+  year           Int
+  medium         String
+  dimensions     String
+  price          Decimal?    @db.Decimal(10,2)
+  availability   String      @default("Available")
+  featured       Boolean     @default(false)
+  categoryId     String
+  category       Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  subcategoryId  String?
+  subcategory    Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([featured])
+  @@index([categoryId])
+  @@index([subcategoryId])
+}
+
+model ContactMessage {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  subject     String
+  inquiryType String
+  message     String
+  status      String   @default("new")
+  createdAt   DateTime @default(now())
+
+  @@index([status])
+}
