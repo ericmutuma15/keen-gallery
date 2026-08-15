@@ -38,7 +38,12 @@ function ArtworkCard({ artwork }) {
     <Link to={`/artwork/${artwork.slug}`} className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#121b20]/80 shadow-[0_30px_80px_rgba(0,0,0,0.42)]">
       <picture>
         {getWebpUrl(artwork.imageUrl) && <source srcSet={getWebpUrl(artwork.imageUrl)} type="image/webp" />}
-        <img src={artwork.imageUrl} alt={artwork.title} className="h-80 w-full object-cover transition duration-700 group-hover:scale-105" />
+        <img
+          src={artwork.imageUrl}
+          alt={artwork.title}
+          className="h-80 w-full object-cover transition duration-700 group-hover:scale-105"
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = (localArtworks[0] && localArtworks[0].imageUrl) || ''; }}
+        />
       </picture>
       <div className="absolute inset-0 bg-gradient-to-t from-[#070b10]/90 via-[#070b10]/20 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 p-5 text-[#f3efe6]">
@@ -55,8 +60,13 @@ export default function HomePage() {
   useEffect(() => {
     apiRequest('/artworks/featured')
       .then((res) => {
-        const fetched = (res.data || []).map((a) => ({ ...a, imageUrl: resolveImageFor(a) }));
-        const merged = [...fetched, ...localFeatured.filter(f => !fetched.some(a => a.slug === f.slug))];
+        const fetched = (res.data || []).map((a) => ({ ...a, imageUrl: resolveImageFor(a), _normSlug: normalizeSlug(a.slug) || (a.title && a.title.toLowerCase()) }));
+        const fetchedSet = new Set(fetched.map((a) => a._normSlug));
+        const toAppend = localFeatured.filter((f) => {
+          const fn = normalizeSlug(f.slug) || (f.title && f.title.toLowerCase());
+          return !fetchedSet.has(fn);
+        });
+        const merged = [...fetched, ...toAppend];
         setFeatured(merged);
       })
       .catch(() => setFeatured(fallbackFeatured));
@@ -111,6 +121,7 @@ export default function HomePage() {
         </div>
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {displayFeatured.map((artwork) => (
+            (console.debug && console.debug('FEATURE IMAGE', artwork.title, artwork.imageUrl)),
             <ArtworkCard key={artwork.id} artwork={artwork} />
           ))}
         </div>

@@ -76,7 +76,12 @@ export default function ArtworkPage() {
             {artwork.imageUrl && artwork.imageUrl.endsWith('.svg') ? null : (
               <source srcSet={artwork.imageUrl ? artwork.imageUrl.replace(/(\.(?:jpe?g|png))(\?.*)?$/i, '.webp$2') : ''} type="image/webp" />
             )}
-            <img src={artwork.imageUrl} alt={artwork.title} className="w-full object-cover" />
+            <img
+              src={artwork.imageUrl}
+              alt={artwork.title}
+              className="w-full object-cover"
+              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = (localArtworks[0] && localArtworks[0].imageUrl) || ''; }}
+            />
           </picture>
         </div>
 

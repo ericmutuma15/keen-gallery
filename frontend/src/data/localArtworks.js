@@ -1,9 +1,9 @@
-import machakos from '../assets/machakos-light.jpeg';
-import afterRain from '../assets/after-rain.jpeg';
-import studioDawn from '../assets/studio-dawn.jpeg';
-import portraitAbstract from '../assets/portrait-abstract.jpeg';
-import marketStreet from '../assets/market-street.jpeg';
-import studioDusk from '../assets/studio-dusk.jpeg';
+import machakos from '../assets/machakos-light.webp';
+import afterRain from '../assets/after-rain.webp';
+import studioDawn from '../assets/studio-dawn.webp';
+import portraitAbstract from '../assets/portrait-abstract.webp';
+import marketStreet from '../assets/market-street.webp';
+import studioDusk from '../assets/studio-dusk.webp';
 import edgar from '../assets/edgar-keen-portrait.svg';
 
 export const localArtworks = [

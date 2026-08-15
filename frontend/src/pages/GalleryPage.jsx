@@ -55,10 +55,26 @@ export default function GalleryPage() {
           apiRequest('/categories'),
         ]);
         if (artRes.data?.length) {
-          // Show first six fetched artworks, then append up to six unique local artworks
-          const fetchedAll = artRes.data.map((a) => ({ ...a, imageUrl: resolveImageFor(a) }));
+          // Map fetched artworks to local images and compute normalized slugs
+          const fetchedAll = artRes.data.map((a) => {
+            const imageUrl = resolveImageFor(a);
+            const _normSlug = normalizeSlug(a.slug) || (a.title && a.title.toLowerCase());
+            return { ...a, imageUrl, _normSlug };
+          });
+
           const firstSix = fetchedAll.slice(0, 6);
-          const toAppend = localArtworks.filter((f) => !firstSix.some((a) => a.slug === f.slug)).slice(0, 6);
+
+          // build set of normalized slugs/titles present in firstSix
+          const firstSet = new Set(firstSix.map((a) => a._normSlug || (a.title && a.title.toLowerCase())));
+
+          const toAppend = localArtworks.filter((f) => {
+            const fNorm = normalizeSlug(f.slug) || (f.title && f.title.toLowerCase());
+            if (firstSet.has(fNorm)) return false;
+            // also avoid title duplicates
+            if (firstSix.some((a) => a.title && f.title && a.title.toLowerCase() === f.title.toLowerCase())) return false;
+            return true;
+          }).slice(0, 6);
+
           const merged = [...firstSix, ...toAppend];
           setArtworks(merged);
         } else {
@@ -130,11 +146,18 @@ export default function GalleryPage() {
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {filtered.map((artwork) => (
+          // debug: log imageUrl to help diagnose missing images
+          (console.debug && console.debug('ART IMAGE', artwork.title, artwork.imageUrl)),
           <Link key={artwork.id} to={`/artwork/${artwork.slug}`} className="group overflow-hidden rounded-[2rem] border border-white/10 bg-[#11181b]/80 shadow-[0_25px_80px_rgba(0,0,0,0.25)]">
               <div className="overflow-hidden">
                 <picture>
                   {getWebpUrl(artwork.imageUrl) && <source srcSet={getWebpUrl(artwork.imageUrl)} type="image/webp" />}
-                  <img src={artwork.imageUrl} alt={artwork.title} className="h-80 w-full object-cover transition duration-700 group-hover:scale-105" />
+                  <img
+                    src={artwork.imageUrl}
+                    alt={artwork.title}
+                    className="h-80 w-full object-cover transition duration-700 group-hover:scale-105"
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = (localArtworks[0] && localArtworks[0].imageUrl) || ''; }}
+                  />
                 </picture>
               </div>
             <div className="space-y-3 p-5">
