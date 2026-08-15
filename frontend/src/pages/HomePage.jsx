@@ -4,15 +4,9 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { apiRequest } from '../services/api';
 import portrait from '../assets/edgar-keen-portrait.svg';
-import workOne from '../assets/WhatsApp Image 2026-08-10 at 11.38.52.jpeg';
-import workTwo from '../assets/WhatsApp Image 2026-08-10 at 11.38.53.jpeg';
-import workThree from '../assets/WhatsApp Image 2026-08-10 at 11.38.54.jpeg';
+import { localFeatured } from '../data/localArtworks';
 
-const fallbackFeatured = [
-  { id: '1', slug: 'machakos-light', title: 'Machakos Light', category: { name: 'Portrait' }, imageUrl: workOne },
-  { id: '2', slug: 'after-rain', title: 'After Rain', category: { name: 'Abstract' }, imageUrl: workTwo },
-  { id: '3', slug: 'night-market', title: 'Night Market', category: { name: 'Street' }, imageUrl: workThree },
-];
+const fallbackFeatured = localFeatured;
 
 function ArtworkCard({ artwork }) {
   return (
@@ -32,8 +26,12 @@ export default function HomePage() {
 
   useEffect(() => {
     apiRequest('/artworks/featured')
-      .then((res) => setFeatured(res.data || []))
-      .catch(() => setFeatured([]));
+      .then((res) => {
+        const fetched = res.data || [];
+        const merged = [...fetched, ...localFeatured.filter(f => !fetched.some(a => a.slug === f.slug))];
+        setFeatured(merged);
+      })
+      .catch(() => setFeatured(fallbackFeatured));
   }, []);
 
   const displayFeatured = featured.length ? featured : fallbackFeatured;

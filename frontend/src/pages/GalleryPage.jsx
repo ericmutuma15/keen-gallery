@@ -2,21 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { apiRequest } from '../services/api';
-import workOne from '../assets/WhatsApp Image 2026-08-10 at 11.38.52.jpeg';
-import workTwo from '../assets/WhatsApp Image 2026-08-10 at 11.38.53.jpeg';
-import workThree from '../assets/WhatsApp Image 2026-08-10 at 11.38.54.jpeg';
-import workFour from '../assets/WhatsApp Image 2026-0-10 at 11.38.53.jpeg';
-import workFive from '../assets/WhatsApp Image 2026-08-1 at 11.38.54.jpeg';
-import workSix from '../assets/WhatsApp Image 2026-08-10 at 11.3854.jpeg';
-
-const fallbackArtworks = [
-  { id: '1', slug: 'machakos-light', title: 'Machakos Light', year: 2026, medium: 'Digital portrait', description: 'A portrait grounded in the warmth and quiet energy of Machakos mornings.', category: { name: 'Portrait', slug: 'portrait' }, imageUrl: workOne },
-  { id: '2', slug: 'after-rain', title: 'After Rain', year: 2026, medium: 'Mixed media', description: 'A moody study of rain, reflection, and the hush after a Kenyan shower.', category: { name: 'Abstract', slug: 'abstract' }, imageUrl: workTwo },
-  { id: '3', slug: 'night-market', title: 'Night Market', year: 2026, medium: 'Street editorial', description: 'Night streets and electric motion captured in a burst of life and color.', category: { name: 'Street', slug: 'street' }, imageUrl: workThree },
-  { id: '4', slug: 'commuter-echo', title: 'Commuter Echo', year: 2026, medium: 'Photo collage', description: 'The blend of transit, noise, and hope in everyday movement.', category: { name: 'Photography', slug: 'photography' }, imageUrl: workFour },
-  { id: '5', slug: 'studio-silence', title: 'Studio Silence', year: 2026, medium: 'Digital composition', description: 'A calm study in pacing, contrast, and the pause before creation.', category: { name: 'Digital', slug: 'digital' }, imageUrl: workFive },
-  { id: '6', slug: 'low-sun', title: 'Low Sun', year: 2026, medium: 'Editorial portrait', description: 'Golden-hour nostalgia and youth energy in one frame.', category: { name: 'Portrait', slug: 'portrait' }, imageUrl: workSix },
-];
+import { localArtworks } from '../data/localArtworks';
 
 const defaultCategories = [
   { id: 'portrait', name: 'Portrait', slug: 'portrait', subcategories: [] },
@@ -40,7 +26,12 @@ export default function GalleryPage() {
           apiRequest('/artworks?limit=12'),
           apiRequest('/categories'),
         ]);
-        if (artRes.data?.length) setArtworks(artRes.data);
+        if (artRes.data?.length) {
+          // Merge fetched artworks with local fallbacks so both sets render
+          const fetched = artRes.data;
+          const merged = [...fetched, ...localArtworks.filter(f => !fetched.some(a => a.slug === f.slug))];
+          setArtworks(merged);
+        }
         if (catRes.data?.length) setCategories(catRes.data);
       } catch (error) {
         console.error(error);

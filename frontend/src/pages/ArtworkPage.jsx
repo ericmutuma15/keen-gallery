@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { apiRequest } from '../services/api';
+import { findLocalBySlug } from '../data/localArtworks';
 
 export default function ArtworkPage() {
   const { slug } = useParams();
@@ -14,8 +15,15 @@ export default function ArtworkPage() {
     apiRequest(`/artworks/${slug}`)
       .then((res) => setArtwork(res.data))
       .catch(() => {
-        setArtwork(null);
-        setError('This artwork could not be found.');
+        // if API misses, check local assets
+        const local = findLocalBySlug(slug);
+        if (local) {
+          setArtwork(local);
+          setError(null);
+        } else {
+          setArtwork(null);
+          setError('This artwork could not be found.');
+        }
       });
   }, [slug]);
 
