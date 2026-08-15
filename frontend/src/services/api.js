@@ -4,8 +4,12 @@ const API_URL =
 
 export const apiRequest = async (endpoint, options = {}) => {
   const response = await fetch(`${API_URL}${endpoint}`, {
+    // Prevent 304 Not Modified responses by disabling cache for API requests
+    cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
       ...(options.headers || {}),
     },
     ...options,
