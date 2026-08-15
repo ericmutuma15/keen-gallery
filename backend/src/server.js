@@ -17,6 +17,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const port = process.env.PORT || 4000;
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://keen-gallery.vercel.app',
+  'https://keen-gallery.onrender.com',
+  ...(process.env.CORS_ORIGINS || process.env.FRONTEND_URL || '').split(',').map((origin) => origin.trim()).filter(Boolean),
+];
+
 app.use(helmet({
   crossOriginResourcePolicy: false,
   contentSecurityPolicy: {
@@ -24,7 +32,7 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       imgSrc: ["'self'", 'data:', 'https:'],
       scriptSrc: ["'self'"],
-      connectSrc: ["'self'", 'http://localhost:5173'],
+      connectSrc: ["'self'", 'http://localhost:5173', 'http://localhost:4000', 'https://keen-gallery.vercel.app', 'https://keen-gallery.onrender.com'],
       styleSrc: ["'self'", "'unsafe-inline'"],
       fontSrc: ["'self'", 'https:'],
     }
@@ -32,8 +40,17 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 app.use(express.json({ limit: '10mb' }));
