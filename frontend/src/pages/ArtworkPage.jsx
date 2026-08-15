@@ -7,14 +7,32 @@ export default function ArtworkPage() {
   const { slug } = useParams();
   const [artwork, setArtwork] = useState(null);
 
+  const [error, setError] = useState(null);
+
   useEffect(() => {
+    setError(null);
     apiRequest(`/artworks/${slug}`)
       .then((res) => setArtwork(res.data))
-      .catch(() => setArtwork(null));
+      .catch(() => {
+        setArtwork(null);
+        setError('This artwork could not be found.');
+      });
   }, [slug]);
 
-  if (!artwork) {
+  if (!artwork && !error) {
     return <div className="mx-auto max-w-7xl px-4 py-20 text-center text-[#e7e2d9]">Loading artwork...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-20 text-center text-[#e7e2d9]">
+        <p className="mb-4 text-sm uppercase tracking-[0.2em] text-[#d0b38d]">Artwork unavailable</p>
+        <h1 className="font-serif text-4xl text-[#f5efe6]">{error}</h1>
+        <Link to="/gallery" className="mt-8 inline-flex items-center gap-3 rounded-full bg-[#f2b77a] px-6 py-3 text-sm uppercase tracking-[0.18em] text-[#11181b]">
+          <ArrowLeft size={16} /> Back to gallery
+        </Link>
+      </div>
+    );
   }
 
   return (
